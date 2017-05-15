@@ -3,7 +3,7 @@
 ## TODO
 1. _Indexation full text de HPO, ATC, STITCH et OMIM_
 2. _Recherche full text dans HPO, ATC, STITCH et OMIM_
-3. Accès aux bases de données OrphaData, Sider et HPO Annotations
+3. _Accès aux bases de données OrphaData, Sider et HPO Annotations_
 4. Mapping des données pour retrouver maladies et médicaments associés à des noms de signes et symptômes
 5. Écriture d'une requête avec l'opérateur logique ET
 6. Présentation des résultats à l'utilisateur
