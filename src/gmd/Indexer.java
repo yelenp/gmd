@@ -33,7 +33,7 @@ public class Indexer {
 		indexOmim();
 	}
 	
-	private static void indexHPO() {
+	public static void indexHPO() {
 		String HPOPath = Configuration.get("hpoData");
 		try {
 			Directory indexDirectory = FSDirectory.open(Paths.get(Configuration.get("hpoIndex")));
@@ -47,13 +47,34 @@ public class Indexer {
 			Document document = new Document();
 			boolean start = false;
 			String id = "";
+			String name = "";
+			String altId = "";
+			String def = "";
+			String comment = "";
+			String synonym = "";
+			String xref = "";
+			String isA = "";
 			while((line = reader.readLine()) != null) {
 				if(line.isEmpty()) {
 					if(start) {
 						document.add(new TextField("id", id, Store.YES));
+						document.add(new TextField("name", name, Store.YES));
+						document.add(new TextField("altId", altId, Store.YES));
+						document.add(new TextField("def", def, Store.YES));
+						document.add(new TextField("comment", comment, Store.YES));
+						document.add(new TextField("synonym", synonym, Store.YES));
+						document.add(new TextField("xref", xref, Store.YES));
+						document.add(new TextField("isA", isA, Store.YES));
 						indexWriter.addDocument(document);
 						document = new Document();
 						id = "";
+						name = "";
+						altId = "";
+						def = "";
+						comment = "";
+						synonym = "";
+						xref = "";
+						isA = "";
 						start = false;
 					}
 				} else if(line.contains("[Term]")) {
@@ -67,25 +88,32 @@ public class Indexer {
 							id = split[1];
 							break;
 						case "name":
-							document.add(new TextField("name", split[1], Store.YES));
+							name += split[1] + System.lineSeparator();
+							//document.add(new TextField("name", split[1], Store.YES));
 							break;
 						case "alt_id":
-							document.add(new TextField("altId", split[1], Store.YES));
+							altId += split[1] + System.lineSeparator();
+							//document.add(new TextField("altId", split[1], Store.YES));
 							break;
 						case "def":
-							document.add(new TextField("def", split[1], Store.YES));
+							def += split[1] + System.lineSeparator();
+							//document.add(new TextField("def", split[1], Store.YES));
 							break;
 						case "comment":
-							document.add(new TextField("comment", split[1], Store.YES));
+							comment += split[1] + System.lineSeparator();
+							//document.add(new TextField("comment", split[1], Store.YES));
 							break;
 						case "synonym":
-							document.add(new TextField("synonym", split[1], Store.YES));
+							synonym += split[1] + System.lineSeparator();
+							//document.add(new TextField("synonym", split[1], Store.YES));
 							break;
 						case "xref":
-							document.add(new TextField("xref", split[1], Store.YES));
+							xref += split[1] + System.lineSeparator();
+							//document.add(new TextField("xref", split[1], Store.YES));
 							break;
 						case "is_a":
-							document.add(new TextField("isA", split[1].split(" ! ")[0], Store.YES));
+							isA += split[1].split(" ! ")[0] + System.lineSeparator();
+							//document.add(new TextField("isA", split[1].split(" ! ")[0], Store.YES));
 							break;
 						case "replaced_by":
 							id = split[1];
