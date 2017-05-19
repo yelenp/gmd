@@ -17,6 +17,7 @@ omimOntoData: /Users/moshi/data/omim/omim_onto.csv
 stitchData: /Users/moshi/data/stitch/chemical.sources.v5.0.tsv
 atcData: /Users/moshi/data/atc/br08303.keg
 hpoData: /Users/moshi/data/hpo/hp.obo
+hpoAnnotationsData: /Users/moshi/data/hpo/hpo_annotations.sqlite
 omimIndex: /Users/moshi/data/index/omim/
 omimOntoIndex: /Users/moshi/data/index/omimOnto/
 stitchIndex: /Users/moshi/data/index/stitch/
