@@ -313,27 +313,30 @@ public class Indexer {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
 			String line = "";
 			boolean index = false;
-			boolean indexNO = false;
+			boolean start = true;
 			String content = "";
 			Document document = new Document();
 			while((line = reader.readLine()) != null) {
 				if(line.contains("*FIELD*")) {
 					if(line.contains("CS")) {
+						if(!start){
+							indexWriter.addDocument(document);
+							document = new Document();
+						}else{
+							start = false;
+						}
 						index = true;
-						indexNO = true;
 						line = reader.readLine();
 					} else if (index){
 						index = false;
 						document.add(new TextField("content", content.trim(), Store.YES));
-						indexWriter.addDocument(document);
 						content = "";
 					}
-					if(line.contains("NO") && indexNO) {
-						indexNO = false;
+					if(line.contains("TI")) {
 						line = reader.readLine();
-						document.add(new TextField("disease", line.trim(), Store.YES));
-						indexWriter.addDocument(document);
-						document = new Document();
+						String[] disease = line.split("[0-9]{6}");
+						if (disease.length > 1)
+							document.add(new TextField("disease", disease[1], Store.YES));
 					}
 					
 				}
@@ -342,6 +345,10 @@ public class Indexer {
 					content += System.lineSeparator();
 				}
 			}
+			
+			indexWriter.addDocument(document);
+			document = new Document();
+			
 			reader.close();
 			indexWriter.close();
 		} catch(IOException e) {

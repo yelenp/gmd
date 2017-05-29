@@ -201,7 +201,7 @@ public class Searcher {
 		return result;
 	}
 	
-	public static ArrayList<String> searchOmim(String query) {
+	public static ArrayList<String> searchOmim(String query, String fieldToGet) {
 		ArrayList<String> result = new ArrayList<String>();
 		try {
 			IndexReader indexReader = DirectoryReader.open(FSDirectory.open(Paths.get(Configuration.get("omimIndex"))));
@@ -212,7 +212,7 @@ public class Searcher {
 			TopDocs documents = indexSearcher.search(queryObject, Integer.MAX_VALUE);
 			ScoreDoc[] scoredDocuments = documents.scoreDocs;
 			for(int i = 0; i < scoredDocuments.length; i++) {
-				result.add(indexSearcher.doc(scoredDocuments[i].doc).get("disease"));
+				result.add(indexSearcher.doc(scoredDocuments[i].doc).get(fieldToGet));
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
