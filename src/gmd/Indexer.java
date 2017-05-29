@@ -48,33 +48,74 @@ public class Indexer {
 			boolean start = false;
 			String id = "";
 			String name = "";
-			String altId = "";
+			
+			ArrayList<String> altIds = new ArrayList<String>();
+			ArrayList<String> synonyms = new ArrayList<String>();
+			ArrayList<String> xrefs = new ArrayList<String>();
+			ArrayList<String> isAs = new ArrayList<String>();
+			
+			
+			//String altId = "";
 			String def = "";
 			String comment = "";
-			String synonym = "";
-			String xref = "";
-			String isA = "";
+			//String synonym = "";
+			//String xref = "";
+			//String isA = "";
 			while((line = reader.readLine()) != null) {
 				if(line.isEmpty()) {
 					if(start) {
 						document.add(new TextField("id", id, Store.YES));
 						document.add(new TextField("name", name, Store.YES));
-						document.add(new TextField("altId", altId, Store.YES));
+						//document.add(new TextField("altId", altId, Store.YES));
 						document.add(new TextField("def", def, Store.YES));
 						document.add(new TextField("comment", comment, Store.YES));
-						document.add(new TextField("synonym", synonym, Store.YES));
-						document.add(new TextField("xref", xref, Store.YES));
-						document.add(new TextField("isA", isA, Store.YES));
+						//document.add(new TextField("synonym", synonym, Store.YES));
+						//document.add(new TextField("xref", xref, Store.YES));
+						//document.add(new TextField("isA", isA, Store.YES));
+						
+						for(String altId : altIds) {
+							document.add(new TextField("altId", altId, Store.YES));
+						}
+						
+						
+						String synonymString = "";
+						for(String synonym : synonyms) {
+							synonymString += synonym + ",";
+							//document.add(new TextField("synonym", synonym, Store.YES));
+						}
+						//synonymString = synonymString.trim();
+						if(synonyms.size() >= 1) {
+							synonymString = synonymString.substring(0, synonymString.length() - 1);
+						}
+						document.add(new TextField("synonym", synonymString, Store.YES));
+						String xrefString = "";
+						for(String xref : xrefs) {
+							xrefString += xref + ",";
+							//document.add(new TextField("xref", xref, Store.YES));
+						}
+						if(xrefs.size() >= 1) {
+							xrefString = xrefString.substring(0, xrefString.length() - 1);
+						}
+						document.add(new TextField("xref", xrefString, Store.YES));
+						
+						for(String isA : isAs) {
+							document.add(new TextField("isA", isA, Store.YES));
+						}
+						
 						indexWriter.addDocument(document);
 						document = new Document();
 						id = "";
 						name = "";
-						altId = "";
+						//altId = "";
 						def = "";
 						comment = "";
-						synonym = "";
-						xref = "";
-						isA = "";
+						//synonym = "";
+						//xref = "";
+						//isA = "";
+						altIds.clear();
+						synonyms.clear();
+						xrefs.clear();
+						isAs.clear();
 						start = false;
 					}
 				} else if(line.contains("[Term]")) {
@@ -92,7 +133,8 @@ public class Indexer {
 							//document.add(new TextField("name", split[1], Store.YES));
 							break;
 						case "alt_id":
-							altId += split[1] + System.lineSeparator();
+							altIds.add(split[1]);
+							//altId += split[1] + System.lineSeparator();
 							//document.add(new TextField("altId", split[1], Store.YES));
 							break;
 						case "def":
@@ -104,15 +146,20 @@ public class Indexer {
 							//document.add(new TextField("comment", split[1], Store.YES));
 							break;
 						case "synonym":
-							synonym += split[1] + System.lineSeparator();
+							synonyms.add(split[1].split("\"")[1]);
+							//synonym += split[1] + System.lineSeparator();
 							//document.add(new TextField("synonym", split[1], Store.YES));
 							break;
 						case "xref":
-							xref += split[1] + System.lineSeparator();
+							if(split[1].contains("UMLS")) {
+								xrefs.add(split[1].split(":")[1]);
+							}
+							//xref += split[1] + System.lineSeparator();
 							//document.add(new TextField("xref", split[1], Store.YES));
 							break;
 						case "is_a":
-							isA += split[1].split(" ! ")[0] + System.lineSeparator();
+							isAs.add(split[1].split(" ! ")[0]);
+							//isA += split[1].split(" ! ")[0] + System.lineSeparator();
 							//document.add(new TextField("isA", split[1].split(" ! ")[0], Store.YES));
 							break;
 						case "replaced_by":
@@ -131,7 +178,7 @@ public class Indexer {
 		}
 	}
 	
-	private static void indexATC() {
+	public static void indexATC() {
 		Pattern pattern = Pattern.compile("([A-Z]+[0-9]{2}[A-Z]{2}[0-9]{2}) ([A-Za-z ]{1,})");
 		Matcher matcher = null;
 		String ATCPath = Configuration.get("atcData");
@@ -148,8 +195,8 @@ public class Indexer {
 			while((line = reader.readLine()) != null) {
 				matcher = pattern.matcher(line);
 				if(matcher.find()) {
-					document.add(new TextField("ATCCode", matcher.group(1), Store.YES));
-					document.add(new TextField("label", matcher.group(2), Store.YES));
+					document.add(new TextField("ATCCode", matcher.group(1).trim(), Store.YES));
+					document.add(new TextField("label", matcher.group(2).trim(), Store.YES));
 					indexWriter.addDocument(document);
 					document = new Document();
 				}
@@ -161,7 +208,7 @@ public class Indexer {
 		}
 	}
 
-	private static void indexStitch() {
+	public static void indexStitch() {
 		String stitchPath = Configuration.get("stitchData");
 		try {
 			Directory indexDirectory = FSDirectory.open(Paths.get(Configuration.get("stitchIndex")));
@@ -218,41 +265,47 @@ public class Indexer {
 			}
 			*/
 			Document document = new Document();
-			Document anotherDocument = new Document();
+			//Document anotherDocument = new Document();
 			if(continuous) {
 				for(int i=start; i<end; i++) {
 					line = reader.readLine();
 					String[] split = line.split("\t");
-					split[0] = split[0].replace("m", "");
-					split[1] = split[1].replace("s", "");
-					document.add(new TextField("compoundId", split[0], Store.YES));
+					split[0] = split[0].replace("m", "1");
+					split[1] = split[1].replace("s", "0");
+					document.add(new TextField("compoundId1", split[0], Store.YES));
+					document.add(new TextField("compoundId2", split[1], Store.YES));
 					document.add(new TextField("ATCCode", split[3], Store.YES));
 					indexWriter.addDocument(document);
 					document = new Document();
+					/*
 					if(!split[0].equals(split[1])) {
 						anotherDocument.add(new TextField("compoundId", split[1], Store.YES));
 						anotherDocument.add(new TextField("ATCCode", split[3], Store.YES));
 						indexWriter.addDocument(anotherDocument);
 						anotherDocument = new Document();
 					}
+					*/
 				}
 			} else {
 				for(int i=start; i<end; i++) {
 					line = reader.readLine();
 					String[] split = line.split("\t");
 					if(split[2].contains("ATC")) {
-						split[0] = split[0].replace("m", "");
-						split[1] = split[1].replace("s", "");
-						document.add(new TextField("compoundId", split[0], Store.YES));
+						split[0] = split[0].replace("m", "1");
+						split[1] = split[1].replace("s", "0");
+						document.add(new TextField("compoundId1", split[0], Store.YES));
+						document.add(new TextField("compoundId2", split[1], Store.YES));
 						document.add(new TextField("ATCCode", split[3], Store.YES));
 						indexWriter.addDocument(document);
 						document = new Document();
+						/*
 						if(!split[0].equals(split[1])) {
 							anotherDocument.add(new TextField("compoundId", split[1], Store.YES));
 							anotherDocument.add(new TextField("ATCCode", split[3], Store.YES));
 							indexWriter.addDocument(anotherDocument);
 							anotherDocument = new Document();
 						}
+						*/
 					}
 				}
 			}
@@ -263,7 +316,7 @@ public class Indexer {
 		}
 	}
 	
-	private static void indexOmimOnto() {
+	public static void indexOmimOnto() {
 		String omimOntoPath = Configuration.get("omimOntoData");
 		try {
 			Directory indexDirectory = FSDirectory.open(Paths.get(Configuration.get("omimOntoIndex")));
@@ -301,7 +354,7 @@ public class Indexer {
 		}
 	}
 	
-	private static void indexOmim() {
+	public static void indexOmim() {
 		String omimPath = Configuration.get("omimData");
 		try {
 			Directory indexDirectory = FSDirectory.open(Paths.get(Configuration.get("omimIndex")));
@@ -312,26 +365,114 @@ public class Indexer {
 			InputStream inputStream = Files.newInputStream(Paths.get(omimPath));
 			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
 			String line = "";
-			boolean index = false;
-			String content = "";
 			Document document = new Document();
 			while((line = reader.readLine()) != null) {
+				if(line.contains("*RECORD*")) {
+					while(!(line = reader.readLine()).contains("*FIELD* TI")) {
+						reader.readLine();
+					}
+					String diseases = "";
+					while(!(line = reader.readLine()).contains("*FIELD*")) {
+						diseases += line;
+					}
+					//String[] split = diseases.replaceAll("(%|#|\\^|\\*)[0-9]{6} ", "").split(";;");
+					//for(String disease : split) {
+					//	document.add(new TextField("disease", disease, Store.YES));
+					//}
+					diseases = diseases.replaceAll("(%|#|\\^|\\*)[0-9]{6} ", "");
+					document.add(new TextField("disease", diseases, Store.YES));
+					while((line = reader.readLine()) != null && !line.contains("*FIELD* CS")) {
+						reader.readLine();
+					}
+					while((line = reader.readLine()) != null && !line.contains("*FIELD*")) {
+						if(!line.contains(":") && !line.trim().isEmpty()) {
+							String clinicalSign = line.replaceAll(";", "");
+							document.add(new TextField("clinicalSign", clinicalSign, Store.YES));
+						}
+					}
+					indexWriter.addDocument(document);
+					document = new Document();
+				}
+			}
+			reader.close();
+			indexWriter.close();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void indexOmimOld() {
+		String omimPath = Configuration.get("omimData");
+		try {
+			Directory indexDirectory = FSDirectory.open(Paths.get(Configuration.get("omimIndex")));
+			Analyzer analyzer = new StandardAnalyzer();
+			IndexWriterConfig indexConfiguration = new IndexWriterConfig(analyzer);
+			indexConfiguration.setOpenMode(OpenMode.CREATE);
+			IndexWriter indexWriter = new IndexWriter(indexDirectory, indexConfiguration);
+			InputStream inputStream = Files.newInputStream(Paths.get(omimPath));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+			String line = "";
+			boolean indexTI = false;
+			boolean indexCS = false;
+			boolean newIndexTI = false;
+			Document document = new Document();
+			String content = "";
+			
+			int it = 0;
+			
+			while((line = reader.readLine()) != null) {
 				if(line.contains("*FIELD*")) {
-					if(line.contains("CS")) {
-						index = true;
-						line = reader.readLine();
-					} else {
-						index = false;
-						document.add(new TextField("content", content.trim(), Store.YES));
-						indexWriter.addDocument(document);
+					if(line.contains("TI")) {
+						if(indexTI) {
+							newIndexTI = true;
+						}
+						indexTI = true;
 						content = "";
-						document = new Document();
+						line = reader.readLine();
+						if(line.contains("#111250 BLOOD GROUP SYSTEM, LANDSTEINER-WIENER; LW")) {
+						while(!((line = reader.readLine()).contains("*FIELD*"))) {
+							
+							System.out.println(line);
+							content += line + " ";
+							it++;
+						}
+						System.out.println(line);
+						//System.out.println("zone");
+						//System.out.println(line);
+						//System.out.println(!(line = reader.readLine()).contains("*FIELD*"));
+						//System.out.println("end zone");
+						
+						content = content.trim();
+						//System.out.println("opex"+content);
+						String[] split = content.replaceAll("(%|#|\\^|\\*)[0-9]{6}", "").split(";;");
+						for(String disease : split) {
+							document.add(new TextField("disease", disease, Store.YES));
+						}
+						}
+					} else if(line.contains("CS")) {
+						indexCS = true;
+						while(!(line = reader.readLine()).contains("*FIELD*")) {
+							if(!line.contains(":") && !line.trim().isEmpty()) {
+								String clinicalSign = line.replaceAll(";", "");
+								document.add(new TextField("clinicalSign", clinicalSign, Store.YES));
+								it++;
+							}
+						}
+					} else {
+						if(newIndexTI) {
+							indexCS = false;
+						}
+						if(indexTI && indexCS) {
+							indexWriter.addDocument(document);
+							document = new Document();
+							indexTI = false;
+							indexCS = false;
+							newIndexTI = false;
+						}
 					}
 				}
-				if(index) {
-					content += line;
-					content += System.lineSeparator();
-				}
+				it++;
+				//System.err.println(it);
 			}
 			reader.close();
 			indexWriter.close();
