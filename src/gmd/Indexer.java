@@ -263,7 +263,7 @@ public class Indexer {
 		}
 	}
 	
-	private static void indexOmimOnto() {
+	public static void indexOmimOnto() {
 		String omimOntoPath = Configuration.get("omimOntoData");
 		try {
 			Directory indexDirectory = FSDirectory.open(Paths.get(Configuration.get("omimOntoIndex")));
@@ -277,7 +277,7 @@ public class Indexer {
 			Document document = new Document();
 			while((line = reader.readLine()) != null) {
 				String[] split = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
-				//document.add(new TextField("classId", split[0], Store.NO));
+				document.add(new TextField("classId", split[0], Store.YES));
 				document.add(new TextField("label", split[1], Store.YES));
 				document.add(new TextField("synonyms", split[2], Store.YES));
 				// split[3] is always empty
@@ -301,7 +301,7 @@ public class Indexer {
 		}
 	}
 	
-	private static void indexOmim() {
+	public static void indexOmim() {
 		String omimPath = Configuration.get("omimData");
 		try {
 			Directory indexDirectory = FSDirectory.open(Paths.get(Configuration.get("omimIndex")));
@@ -313,20 +313,29 @@ public class Indexer {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
 			String line = "";
 			boolean index = false;
+			boolean indexNO = false;
 			String content = "";
 			Document document = new Document();
 			while((line = reader.readLine()) != null) {
 				if(line.contains("*FIELD*")) {
 					if(line.contains("CS")) {
 						index = true;
+						indexNO = true;
 						line = reader.readLine();
-					} else {
+					} else if (index){
 						index = false;
 						document.add(new TextField("content", content.trim(), Store.YES));
 						indexWriter.addDocument(document);
 						content = "";
+					}
+					if(line.contains("NO") && indexNO) {
+						indexNO = false;
+						line = reader.readLine();
+						document.add(new TextField("disease", line.trim(), Store.YES));
+						indexWriter.addDocument(document);
 						document = new Document();
 					}
+					
 				}
 				if(index) {
 					content += line;

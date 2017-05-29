@@ -212,7 +212,7 @@ public class Searcher {
 			TopDocs documents = indexSearcher.search(queryObject, Integer.MAX_VALUE);
 			ScoreDoc[] scoredDocuments = documents.scoreDocs;
 			for(int i = 0; i < scoredDocuments.length; i++) {
-				result.add(indexSearcher.doc(scoredDocuments[i].doc).get("content"));
+				result.add(indexSearcher.doc(scoredDocuments[i].doc).get("disease"));
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
