@@ -277,7 +277,7 @@ public class Indexer {
 			Document document = new Document();
 			while((line = reader.readLine()) != null) {
 				String[] split = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
-				document.add(new TextField("classId", split[0], Store.YES));
+				//document.add(new TextField("classId", split[0], Store.YES));
 				document.add(new TextField("label", split[1], Store.YES));
 				document.add(new TextField("synonyms", split[2], Store.YES));
 				// split[3] is always empty

@@ -1,13 +1,15 @@
 package gmd;
 
 import java.util.ArrayList;
+import javax.swing.JFrame;
 
-public class App {
+public class App{
 	
 	public static void main(String[] args) {
 		System.out.println("Call initialize() for initializing the application.");
+		
 		//initialize();
-		Indexer.indexOmimOnto();
+		//Indexer.indexOmimOnto();
 		String symptom = "Severe psychomotor retardation";
 		//Disease
 		ArrayList<String> resultOmim = new ArrayList<String>();
@@ -32,9 +34,9 @@ public class App {
 		
 		resultOmim = Searcher.searchOmim(symptom);
 		resultHPO = Searcher.searchHPO(symptom, "name", "id");
-		resultOmimOnto = Searcher.searchOmimOnto(symptom, "label", "ClassId");
+		resultOmimOnto = Searcher.searchOmimOnto(symptom, "label", "CUIs");
 		
-		resultHPOAnnotations = Searcher.searchHPOAnnotations(resultHPO.get(0), "sign_id", "disease_db_and_id");
+		resultHPOAnnotations = Searcher.searchHPOAnnotations(resultHPO.get(0), "sign_id", "disease_label");
 		
 		
 		System.out.println("Omim : " + resultOmim);
